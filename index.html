@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AllBavon — La plateforme qui propulse les étudiants</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="firebase-config.js"></script>
+
+    <!-- Supabase SDK -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
+
+    <!-- Écran de protection / Code d'accès -->
+    <div id="access-overlay" class="access-overlay active">
+        <div class="access-modal">
+            <div class="logo-lockup">
+                <img src="assets/globe.png" alt="Globe AllBavon" class="globe-lockup">
+                <h1>AllBavon</h1>
+            </div>
+            <p class="access-subtitle">L'accès à la plateforme est sur invitation.</p>
+            <p class="access-desc">Entrez votre code d'accès pour rejoindre la communauté.</p>
+            
+            <div class="code-inputs">
+                <input type="text" maxlength="1" class="code-digit" data-index="0">
+                <input type="text" maxlength="1" class="code-digit" data-index="1">
+                <input type="text" maxlength="1" class="code-digit" data-index="2">
+                <input type="text" maxlength="1" class="code-digit" data-index="3">
+                <input type="text" maxlength="1" class="code-digit" data-index="4">
+                <input type="text" maxlength="1" class="code-digit" data-index="5">
+                <input type="text" maxlength="1" class="code-digit" data-index="6">
+                <input type="text" maxlength="1" class="code-digit" data-index="7">
+            </div>
+            <p id="code-error" class="code-error">Code incorrect. Réessayez.</p>
+            <button id="verify-code" class="btn-primary">Vérifier le code</button>
+            
+            <div class="access-footer">
+                <p>Vous n'avez pas de code ?</p>
+                <button id="request-access-btn" class="link-btn">Demander un accès</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de demande d'accès -->
+    <div id="request-modal" class="request-modal">
+        <div class="request-content">
+            <button id="close-request" class="close-btn">&times;</button>
+            <h2>Demander un accès</h2>
+            <p>Remplissez ce formulaire. Notre équipe étudiera votre demande.</p>
+            <form id="access-form" action="https://formspree.io/f/mqevwwbv" method="POST">
+                <input type="hidden" name="_subject" value="Nouvelle demande d'accès AllBavon">
+                <div class="form-group">
+                    <label>Nom complet</label>
+                    <input type="text" name="name" id="req-name" required placeholder="Votre nom">
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" name="email" id="req-email" required placeholder="votre@email.com">
+                </div>
+                <div class="form-group">
+                    <label>Pourquoi voulez-vous accéder à AllBavon ?</label>
+                    <textarea name="reason" id="req-reason" rows="3" required placeholder="Expliquez votre motivation..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Où avez-vous entendu parler du site ?</label>
+                    <input type="text" name="source" id="req-source" required placeholder="Ex: réseaux sociaux, un ami, etc.">
+                </div>
+                <div class="form-group">
+                    <label>Faculté / Domaine d'études</label>
+                    <input type="text" name="faculty" id="req-faculty" placeholder="Ex: Médecine, Droit, Informatique...">
+                </div>
+                <button type="submit" class="btn-primary full">Envoyer la demande</button>
+            </form>
+            <div id="request-success" class="request-success">
+                <h3>✅ Demande envoyée !</h3>
+                <p>Nous l'étudierons et vous recevrez le code d'accès sous peu.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de création de compte utilisateur -->
+    <div id="signup-modal" class="signup-modal">
+        <div class="signup-content">
+            <h2>Créer votre compte AllBavon</h2>
+            <p>Le code est validé. Rejoignez maintenant la communauté.</p>
+            <form id="signup-form">
+                <div class="form-group">
+                    <label>Nom complet</label>
+                    <input type="text" id="signup-name" required>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="signup-email" required>
+                </div>
+                <div class="form-group">
+                    <label>Mot de passe</label>
+                    <input type="password" id="signup-password" required minlength="6">
+                </div>
+                <div class="form-group">
+                    <label>Faculté / Domaine</label>
+                    <input type="text" id="signup-faculty" required>
+                </div>
+                <button type="submit" class="btn-primary full">Créer mon compte</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Interface UTILISATEUR -->
+    <div id="app-user" class="app">
+        <header class="main-header">
+            <nav class="nav-container">
+                <a href="#" class="nav-logo">
+                    <img src="assets/globe.png" alt="AllBavon">
+                    <span>AllBavon</span>
+                </a>
+                <ul class="nav-links">
+                    <li><a href="#hero-user">Accueil</a></li>
+                    <li><a href="#sections-user">Sections</a></li>
+                    <li><a href="#forum-section">Forum</a></li>
+                    <li><a href="#courses-section">Cours</a></li>
+                    <li><a href="#community-user">Communauté</a></li>
+                </ul>
+                <div class="user-menu">
+                    <span id="user-name">Invité</span>
+                    <button id="logout-btn-user" class="btn-small">Déconnexion</button>
+                </div>
+            </nav>
+        </header>
+
+        <main>
+            <section id="hero-user" class="hero">
+                <div class="hero-bg"></div>
+                <div class="hero-content">
+                    <div class="hero-badge">
+                        <span class="badge-dot"></span>
+                        <span>Plateforme étudiante en ligne</span>
+                    </div>
+                    <h1 class="hero-title">
+                        AllBavon.<br>
+                        <span class="gradient-text">Apprenez. Partagez. Bougez.</span>
+                    </h1>
+                    <p class="hero-text">
+                        La communauté où les étudiants de toutes les facultés s'entraident, 
+                        échangent des cours, posent des questions et construisent l'avenir ensemble.
+                    </p>
+                    <div class="hero-actions">
+                        <a href="#sections-user" class="btn-primary">Explorer les sections</a>
+                        <a href="#forum-section" class="btn-secondary">Rejoindre le forum</a>
+                    </div>
+                    <div class="hero-globe">
+                        <img src="assets/globe.png" alt="Globe AllBavon" class="floating-globe">
+                    </div>
+                </div>
+            </section>
+
+            <section id="sections-user" class="sections">
+                <div class="section-header">
+                    <span class="section-tag">Fonctionnalités</span>
+                    <h2>Tout ce qu'il faut pour réussir</h2>
+                    <p>Des outils conçus pour accompagner chaque étape de votre parcours.</p>
+                </div>
+
+                <div class="cards-grid">
+                    <article class="feature-card">
+                        <div class="card-image">
+                            <img src="assets/ask-question.png" alt="Poser une question">
+                        </div>
+                        <div class="card-content">
+                            <h3>Poser une question</h3>
+                            <p>Obtenez des réponses rapides de la communauté d'étudiants et de mentors.</p>
+                            <a href="#forum-section" class="card-link">Poser ma question →</a>
+                        </div>
+                    </article>
+
+                    <article class="feature-card">
+                        <div class="card-image">
+                            <img src="assets/learn.png" alt="Apprendre">
+                        </div>
+                        <div class="card-content">
+                            <h3>Apprendre</h3>
+                            <p>Accédez à des ressources pédagogiques organisées par discipline et niveau.</p>
+                            <a href="#courses-section" class="card-link">Voir les ressources →</a>
+                        </div>
+                    </article>
+
+                    <article class="feature-card">
+                        <div class="card-image">
+                            <img src="assets/online-courses.png" alt="Cours en ligne">
+                        </div>
+                        <div class="card-content">
+                            <h3>Cours en ligne</h3>
+                            <p>Suivez des cours partagés par d'autres étudiants et enrichissez vos compétences.</p>
+                            <a href="#courses-section" class="card-link">Voir les cours →</a>
+                        </div>
+                    </article>
+
+                    <article class="feature-card">
+                        <div class="card-image">
+                            <img src="assets/exam-prep.png" alt="Préparer une épreuve">
+                        </div>
+                        <div class="card-content">
+                            <h3>Préparer une épreuve</h3>
+                            <p>Révisez avec des anciens sujets, des quiz et des fiches créées par la communauté.</p>
+                            <a href="#courses-section" class="card-link">Préparer mon examen →</a>
+                        </div>
+                    </article>
+
+                    <article class="feature-card">
+                        <div class="card-image">
+                            <img src="assets/innovation-news.png" alt="Suivre les nouvelles innovantes">
+                        </div>
+                        <div class="card-content">
+                            <h3>Suivre les nouvelles innovantes</h3>
+                            <p>Restez informé des avancées, opportunités et actualités du monde étudiant.</p>
+                            <a href="#forum-section" class="card-link">Découvrir les nouvelles →</a>
+                        </div>
+                    </article>
+
+                    <article class="feature-card">
+                        <div class="card-image">
+                            <img src="assets/help.png" alt="Aide polyvalente">
+                        </div>
+                        <div class="card-content">
+                            <h3>Aide polyvalente</h3>
+                            <p>De l'orientation au soutien psychologique, trouvez l'aide dont vous avez besoin.</p>
+                            <a href="#forum-section" class="card-link">Obtenir de l'aide →</a>
+                        </div>
+                    </article>
+                </div>
+            </section>
+
+            <!-- FORUM DE DISCUSSION -->
+            <section id="forum-section" class="forum-section sections">
+                <div class="section-header">
+                    <span class="section-tag">Forum</span>
+                    <h2>Discussions et entraide</h2>
+                    <p>Posez vos questions, répondez à vos camarades et partagez vos connaissances.</p>
+                </div>
+
+                <div class="forum-container">
+                    <div class="forum-sidebar">
+                        <button id="new-topic-btn" class="btn-primary full">Nouveau sujet</button>
+                        <div class="forum-categories">
+                            <h4>Catégories</h4>
+                            <button class="category-btn active" data-category="all">Tous les sujets</button>
+                            <button class="category-btn" data-category="questions">Questions</button>
+                            <button class="category-btn" data-category="cours">Cours</button>
+                            <button class="category-btn" data-category="examens">Examens</button>
+                            <button class="category-btn" data-category="nouvelles">Nouvelles</button>
+                            <button class="category-btn" data-category="divers">Divers</button>
+                        </div>
+                    </div>
+
+                    <div class="forum-main">
+                        <div id="new-topic-form" class="new-topic-form" style="display:none;">
+                            <h3>Créer un nouveau sujet</h3>
+                            <div class="form-group">
+                                <label>Titre</label>
+                                <input type="text" id="topic-title" placeholder="Titre de votre question...">
+                            </div>
+                            <div class="form-group">
+                                <label>Catégorie</label>
+                                <select id="topic-category">
+                                    <option value="questions">Questions</option>
+                                    <option value="cours">Cours</option>
+                                    <option value="examens">Examens</option>
+                                    <option value="nouvelles">Nouvelles</option>
+                                    <option value="divers">Divers</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Message</label>
+                                <textarea id="topic-content" rows="4" placeholder="Décrivez votre sujet..."></textarea>
+                            </div>
+                            <div class="form-actions">
+                                <button id="cancel-topic" class="btn-secondary">Annuler</button>
+                                <button id="submit-topic" class="btn-primary">Publier</button>
+                            </div>
+                        </div>
+
+                        <div id="topics-list" class="topics-list">
+                            <p class="loading-state">Chargement des discussions...</p>
+                        </div>
+
+                        <div id="topic-detail" class="topic-detail" style="display:none;">
+                            <button id="back-to-topics" class="btn-secondary btn-small">← Retour aux sujets</button>
+                            <div id="topic-detail-content"></div>
+                            <div class="replies-list" id="replies-list"></div>
+                            <div class="reply-form">
+                                <h4>Répondre</h4>
+                                <textarea id="reply-content" rows="3" placeholder="Votre réponse..."></textarea>
+                                <button id="submit-reply" class="btn-primary">Envoyer ma réponse</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ESPACE COURS -->
+            <section id="courses-section" class="courses-section sections">
+                <div class="section-header">
+                    <span class="section-tag">Cours</span>
+                    <h2>Partagez et téléchargez des cours</h2>
+                    <p>Téléchargez des cours, partagez vos notes et accédez aux ressources de la communauté.</p>
+                </div>
+
+                <div class="courses-toolbar">
+                    <button id="upload-course-btn" class="btn-primary">+ Télécharger un cours</button>
+                    <div class="courses-filter">
+                        <input type="text" id="courses-search" placeholder="Rechercher un cours...">
+                    </div>
+                </div>
+
+                <div id="upload-course-form" class="upload-course-form" style="display:none;">
+                    <h3>Télécharger un cours</h3>
+                    <div class="form-group">
+                        <label>Titre du cours</label>
+                        <input type="text" id="course-title" placeholder="Ex: Introduction à la biologie">
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea id="course-description" rows="3" placeholder="Décrivez brièvement ce cours..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Faculté / Matière</label>
+                        <input type="text" id="course-subject" placeholder="Ex: Médecine, Droit, Mathématiques...">
+                    </div>
+                    <div class="form-group">
+                        <label>Fichier (PDF, Word, PowerPoint...)</label>
+                        <input type="file" id="course-file" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.zip">
+                    </div>
+                    <div class="form-actions">
+                        <button id="cancel-course" class="btn-secondary">Annuler</button>
+                        <button id="submit-course" class="btn-primary">Publier le cours</button>
+                    </div>
+                    <div id="upload-progress" class="upload-progress" style="display:none;">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progress-fill"></div>
+                        </div>
+                        <span id="upload-status">Envoi en cours...</span>
+                    </div>
+                </div>
+
+                <div id="courses-list" class="courses-list">
+                    <p class="loading-state">Chargement des cours...</p>
+                </div>
+            </section>
+
+            <section id="community-user" class="community">
+                <div class="community-content">
+                    <span class="section-tag">Communauté</span>
+                    <h2>Des étudiants qui rêvent de bouger les choses</h2>
+                    <p>Rejoignez un réseau de passionnés. Posez des questions, partagez vos connaissances, collaborez sur des projets et restez inspiré.</p>
+                    <div class="community-actions">
+                        <a href="#forum-section" class="btn-primary">Rejoindre le forum</a>
+                        <a href="#courses-section" class="btn-secondary">Voir les cours</a>
+                    </div>
+                </div>
+                <div class="community-visual">
+                    <img src="assets/hero-students.png" alt="Communauté étudiante">
+                </div>
+            </section>
+
+            <section id="about-user" class="about">
+                <div class="about-card">
+                    <img src="assets/globe.png" alt="AllBavon Globe" class="about-globe">
+                    <h2>AllBavon, la marque qui vous propulse</h2>
+                    <p>Notre identité mêle le globe transparent (universel, connecté, lumineux) et le bleu profond (confiance, savoir, innovation). AllBavon, c'est le réseau où chaque étudiant peut contribuer, apprendre et avancer.</p>
+                    <a href="#" class="btn-primary" onclick="openRequestModal()">Inviter un ami</a>
+                </div>
+            </section>
+        </main>
+
+        <footer class="main-footer">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <img src="assets/globe.png" alt="AllBavon">
+                    <span>AllBavon</span>
+                    <p>La plateforme étudiante qui bouge les choses.</p>
+                </div>
+                <div class="footer-links">
+                    <h4>Sections</h4>
+                    <ul>
+                        <li><a href="#forum-section">Forum</a></li>
+                        <li><a href="#courses-section">Cours</a></li>
+                        <li><a href="#">Préparer une épreuve</a></li>
+                        <li><a href="#">Nouvelles innovantes</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h4>Contact</h4>
+                    <ul>
+                        <li><a href="#" onclick="openRequestModal()">Demander un accès</a></li>
+                        <li><a href="#forum-section">Support communautaire</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 AllBavon. Tous droits réservés.</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Interface ADMINISTRATEUR -->
+    <div id="app-admin" class="app">
+        <header class="main-header admin-header">
+            <nav class="nav-container">
+                <a href="#" class="nav-logo">
+                    <img src="assets/globe.png" alt="AllBavon">
+                    <span>AllBavon <span class="admin-badge">Admin</span></span>
+                </a>
+                <ul class="nav-links">
+                    <li><a href="#dashboard">Tableau de bord</a></li>
+                    <li><a href="#admin-forum">Forum</a></li>
+                    <li><a href="#admin-courses">Cours</a></li>
+                    <li><a href="#admin-users">Utilisateurs</a></li>
+                    <li><a href="#settings">Paramètres</a></li>
+                </ul>
+                <div class="user-menu">
+                    <span id="admin-name">Administrateur</span>
+                    <button id="logout-btn-admin" class="btn-small">Déconnexion</button>
+                </div>
+            </nav>
+        </header>
+
+        <main class="admin-main">
+            <section id="dashboard" class="admin-dashboard">
+                <div class="admin-header-section">
+                    <h1>Tableau de bord</h1>
+                    <p>Bienvenue dans l'espace administrateur d'AllBavon.</p>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-item admin-stat">
+                        <span class="stat-number" id="admin-stat-users">0</span>
+                        <span class="stat-label">Utilisateurs inscrits</span>
+                    </div>
+                    <div class="stat-item admin-stat">
+                        <span class="stat-number" id="admin-stat-topics">0</span>
+                        <span class="stat-label">Sujets de forum</span>
+                    </div>
+                    <div class="stat-item admin-stat">
+                        <span class="stat-number" id="admin-stat-courses">0</span>
+                        <span class="stat-label">Cours partagés</span>
+                    </div>
+                    <div class="stat-item admin-stat">
+                        <span class="stat-number" id="admin-stat-faculties">0</span>
+                        <span class="stat-label">Facultés représentées</span>
+                    </div>
+                </div>
+
+                <div class="admin-section">
+                    <h2>Email administrateur</h2>
+                    <div class="admin-info-box">
+                        <p id="admin-email-display"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="036d646c6d646c686a77666d64666162756c6d43646e626a6f2d606c6e">[email&#160;protected]</a></p>
+                        <p class="admin-note">Cet email est visible uniquement dans cette interface admin.</p>
+                    </div>
+                </div>
+
+                <div class="admin-section">
+                    <h2>Codes d'accès</h2>
+                    <div class="admin-info-box">
+                        <p><strong>Code administrateur :</strong> <span id="admin-code-display">ba167144</span></p>
+                        <p><strong>Code utilisateur :</strong> <span id="user-code-display">2661960</span></p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="admin-forum" class="admin-section">
+                <h2>Gestion du forum</h2>
+                <p>Modérez les sujets et réponses de la communauté.</p>
+                <div id="admin-topics-list" class="admin-list">
+                    <p class="empty-state">Chargement des sujets...</p>
+                </div>
+            </section>
+
+            <section id="admin-courses" class="admin-section">
+                <h2>Gestion des cours</h2>
+                <p>Modérez les cours partagés par les étudiants.</p>
+                <div id="admin-courses-list" class="admin-list">
+                    <p class="empty-state">Chargement des cours...</p>
+                </div>
+            </section>
+
+            <section id="admin-users" class="admin-section">
+                <h2>Utilisateurs inscrits</h2>
+                <p>Liste des étudiants ayant créé un compte.</p>
+                <div id="admin-users-list" class="admin-list">
+                    <p class="empty-state">Chargement des utilisateurs...</p>
+                </div>
+            </section>
+
+            <section id="settings" class="admin-section settings-section">
+                <h2>Paramètres</h2>
+                <p>Gérez les informations de la plateforme.</p>
+                <div class="settings-form">
+                    <div class="form-group">
+                        <label>Email de contact (pour les brouillons de demande)</label>
+                        <input type="email" id="admin-email-input" value="ngongokitengebavon@gmail.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Nombre de cours partagés (affichage admin)</label>
+                        <input type="number" id="admin-courses-count" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Nombre de facultés représentées (affichage admin)</label>
+                        <input type="number" id="admin-faculties-count" value="0">
+                    </div>
+                    <button id="save-admin-settings" class="btn-primary">Enregistrer les paramètres</button>
+                </div>
+            </section>
+        </main>
+
+        <footer class="main-footer">
+            <div class="footer-bottom">
+                <p>&copy; 2026 AllBavon — Interface administrateur. Tous droits réservés.</p>
+            </div>
+        </footer>
+    </div>
+
+    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="script.js"></script>
+</body>
+</html>
