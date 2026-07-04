@@ -1,7 +1,7 @@
 // ============================================================
 // CONFIGURATION
 // ============================================================
-const USER_CODE = "2661960";
+const USER_CODE = "26061960";
 const ADMIN_CODE = "ba167144";
 const DEFAULT_ADMIN_EMAIL = "ngongokitengebavon@gmail.com";
 
@@ -202,10 +202,16 @@ function initCodeInputs() {
 
         input.addEventListener("input", (e) => {
             const value = e.target.value;
-            if (!/^\d*$/.test(value)) {
+            
+            // Accepter lettres et chiffres uniquement
+            if (!/^[a-zA-Z0-9]*$/.test(value)) {
                 e.target.value = "";
                 return;
             }
+            
+            // Convertir en minuscule pour les lettres
+            e.target.value = value.toLowerCase();
+            
             if (value.length === 1) {
                 if (index < codeInputs.length - 1) {
                     codeInputs[index + 1].focus();
@@ -217,9 +223,9 @@ function initCodeInputs() {
 
         input.addEventListener("paste", (e) => {
             e.preventDefault();
-            const pastedData = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, codeInputs.length);
-            pastedData.split("").forEach((digit, i) => {
-                if (codeInputs[i]) codeInputs[i].value = digit;
+            const pastedData = e.clipboardData.getData("text").replace(/[^a-zA-Z0-9]/g, "").toLowerCase().slice(0, codeInputs.length);
+            pastedData.split("").forEach((char, i) => {
+                if (codeInputs[i]) codeInputs[i].value = char;
             });
             if (pastedData.length === codeInputs.length) {
                 verifyCode();
