@@ -9,16 +9,14 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
-    <!-- Firebase SDKs -->
+    <script src="app-config.js"></script>
+    <script src="firebase-config.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-    <script src="firebase-config.js"></script>
 
-    <!-- Supabase SDK -->
     <script src="https://unpkg.com/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
 
-    <!-- Écran de protection / Code d'accès -->
     <div id="access-overlay" class="access-overlay active">
         <div class="access-modal">
             <div class="logo-lockup">
@@ -27,7 +25,7 @@
             </div>
             <p class="access-subtitle">L'accès à la plateforme est sur invitation.</p>
             <p class="access-desc">Entrez votre code d'accès pour rejoindre la communauté.</p>
-            
+
             <div class="code-inputs">
                 <input type="text" maxlength="1" class="code-digit" data-index="0">
                 <input type="text" maxlength="1" class="code-digit" data-index="1">
@@ -40,7 +38,7 @@
             </div>
             <p id="code-error" class="code-error">Code incorrect. Réessayez.</p>
             <button id="verify-code" class="btn-primary">Vérifier le code</button>
-            
+
             <div class="access-footer">
                 <p>Vous n'avez pas de code ?</p>
                 <button id="request-access-btn" class="link-btn">Demander un accès</button>
@@ -48,13 +46,12 @@
         </div>
     </div>
 
-    <!-- Modal de demande d'accès -->
     <div id="request-modal" class="request-modal">
         <div class="request-content">
             <button id="close-request" class="close-btn">&times;</button>
             <h2>Demander un accès</h2>
             <p>Remplissez ce formulaire. Notre équipe étudiera votre demande.</p>
-            <form id="access-form" action="https://formspree.io/f/mqevwwbv" method="POST">
+            <form id="access-form" action="#" method="POST">
                 <input type="hidden" name="_subject" value="Nouvelle demande d'accès AllBavon">
                 <div class="form-group">
                     <label>Nom complet</label>
@@ -85,7 +82,6 @@
         </div>
     </div>
 
-    <!-- Modal de création de compte utilisateur -->
     <div id="signup-modal" class="signup-modal">
         <div class="signup-content">
             <h2>Créer votre compte AllBavon</h2>
@@ -112,7 +108,6 @@
         </div>
     </div>
 
-    <!-- Interface UTILISATEUR -->
     <div id="app-user" class="app">
         <header class="main-header">
             <nav class="nav-container">
@@ -147,7 +142,7 @@
                         <span class="gradient-text">Apprenez. Partagez. Bougez.</span>
                     </h1>
                     <p class="hero-text">
-                        La communauté où les étudiants de toutes les facultés s'entraident, 
+                        La communauté où les étudiants de toutes les facultés s'entraident,
                         échangent des cours, posent des questions et construisent l'avenir ensemble.
                     </p>
                     <div class="hero-actions">
@@ -236,7 +231,6 @@
                 </div>
             </section>
 
-            <!-- FORUM DE DISCUSSION -->
             <section id="forum-section" class="forum-section sections">
                 <div class="section-header">
                     <span class="section-tag">Forum</span>
@@ -303,7 +297,6 @@
                 </div>
             </section>
 
-            <!-- ESPACE COURS -->
             <section id="courses-section" class="courses-section sections">
                 <div class="section-header">
                     <span class="section-tag">Cours</span>
@@ -372,7 +365,7 @@
                 <div class="about-card">
                     <img src="assets/globe.png" alt="AllBavon Globe" class="about-globe">
                     <h2>AllBavon, la marque qui vous propulse</h2>
-                    <p>Notre identité mêle le globe transparent (universel, connecté, lumineux) et le bleu profond (confiance, savoir, innovation). AllBavon, c'est le réseau où chaque étudiant peut contribuer, apprendre et avancer.</p>
+                    <p>Notre identité mêle le globe transparent (universel, connecté, lumineux) et le bleu profond (confiance, savoir, innovation). AllBavon, c'est le réseau où chaque étudiant peut s'inspirer, apprendre et oser.</p>
                     <a href="#" class="btn-primary" onclick="openRequestModal()">Inviter un ami</a>
                 </div>
             </section>
@@ -408,7 +401,6 @@
         </footer>
     </div>
 
-    <!-- Interface ADMINISTRATEUR -->
     <div id="app-admin" class="app">
         <header class="main-header admin-header">
             <nav class="nav-container">
@@ -459,7 +451,7 @@
                 <div class="admin-section">
                     <h2>Email administrateur</h2>
                     <div class="admin-info-box">
-                        <p id="admin-email-display"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="036d646c6d646c686a77666d64666162756c6d43646e626a6f2d606c6e">[email&#160;protected]</a></p>
+                        <p id="admin-email-display">À configurer</p>
                         <p class="admin-note">Cet email est visible uniquement dans cette interface admin.</p>
                     </div>
                 </div>
@@ -467,8 +459,8 @@
                 <div class="admin-section">
                     <h2>Codes d'accès</h2>
                     <div class="admin-info-box">
-                        <p><strong>Code administrateur :</strong> <span id="admin-code-display">ba167144</span></p>
-                        <p><strong>Code utilisateur :</strong> <span id="user-code-display">2661960</span></p>
+                        <p><strong>Code administrateur :</strong> <span id="admin-code-display">À configurer</span></p>
+                        <p><strong>Code utilisateur :</strong> <span id="user-code-display">À configurer</span></p>
                     </div>
                 </div>
             </section>
@@ -503,7 +495,7 @@
                 <div class="settings-form">
                     <div class="form-group">
                         <label>Email de contact (pour les brouillons de demande)</label>
-                        <input type="email" id="admin-email-input" value="ngongokitengebavon@gmail.com">
+                        <input type="email" id="admin-email-input" value="">
                     </div>
                     <div class="form-group">
                         <label>Nombre de cours partagés (affichage admin)</label>
@@ -525,6 +517,6 @@
         </footer>
     </div>
 
-    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>

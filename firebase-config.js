@@ -1,31 +1,53 @@
-// ============================================================
-// CONFIGURATION FIREBASE — ALLBAVON
-// ============================================================
+(function (global) {
+    const config = global.__ALLBAVON_CONFIG__ || {};
+    const firebaseConfig = {
+        apiKey: "",
+        authDomain: "",
+        projectId: "",
+        storageBucket: "",
+        messagingSenderId: "",
+        appId: ""
+    };
 
-const firebaseConfig = {
-    apiKey: "AIzaSyCLJsMsGC6OXGUJaQN7npLNSK6VpUQ2HLg",
-    authDomain: "allbavon-web.firebaseapp.com",
-    projectId: "allbavon-web",
-    storageBucket: "allbavon-web.firebasestorage.app",
-    messagingSenderId: "414287600356",
-    appId: "1:414287600356:web:7172b372a20c4603adeaf1"
-};
+    const firebaseSettings = config.firebase || {};
+    Object.assign(firebaseConfig, {
+        apiKey: String(firebaseSettings.apiKey || "").trim(),
+        authDomain: String(firebaseSettings.authDomain || "").trim(),
+        projectId: String(firebaseSettings.projectId || "").trim(),
+        storageBucket: String(firebaseSettings.storageBucket || "").trim(),
+        messagingSenderId: String(firebaseSettings.messagingSenderId || "").trim(),
+        appId: String(firebaseSettings.appId || "").trim()
+    });
 
-// ============================================================
-// CONFIGURATION FORMSPREE — ALLBAVON
-// ============================================================
+    const formspreeEndpoint = String((config.formspree && config.formspree.endpoint) || "").trim();
+    const supabaseSettings = config.supabase || {};
+    const SUPABASE_URL = String(supabaseSettings.url || "").trim();
+    const SUPABASE_ANON_KEY = String(supabaseSettings.anonKey || "").trim();
+    const SUPABASE_BUCKET = String(supabaseSettings.bucket || "courses").trim();
+    const ACCESS_CONFIG = config.access || {};
+    const ADMIN_CODE = String(ACCESS_CONFIG.adminCode || "").trim();
+    const USER_CODE = String(ACCESS_CONFIG.userCode || "").trim();
+    const DEFAULT_ADMIN_EMAIL = String(ACCESS_CONFIG.adminEmail || "").trim();
 
-const FORMSPREE_ENDPOINT = "https://formspree.io/f/mqevwwbv";
+    global.firebaseConfig = firebaseConfig;
+    global.FORMSPREE_ENDPOINT = formspreeEndpoint;
+    global.SUPABASE_URL = SUPABASE_URL;
+    global.SUPABASE_ANON_KEY = SUPABASE_ANON_KEY;
+    global.SUPABASE_BUCKET = SUPABASE_BUCKET;
+    global.ADMIN_CODE = ADMIN_CODE;
+    global.USER_CODE = USER_CODE;
+    global.DEFAULT_ADMIN_EMAIL = DEFAULT_ADMIN_EMAIL;
 
-// ============================================================
-// CONFIGURATION SUPABASE — ALLBAVON (stockage de fichiers)
-// ============================================================
-
-const SUPABASE_URL = "https://matdayziakeclbajmsme.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1hdGRheXppYWtlY2xiYWptc21lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMxNTcxNzksImV4cCI6MjA5ODczMzE3OX0.-cHZwB2apecE8qUeQuSPtyNsCHIsselOCKpZLRTSoI4";
-const SUPABASE_BUCKET = "courses";
-
-// Export des configurations (pour les utiliser dans script.js)
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { firebaseConfig, FORMSPREE_ENDPOINT, SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_BUCKET };
-}
+    if (typeof module !== "undefined" && module.exports) {
+        module.exports = {
+            firebaseConfig,
+            FORMSPREE_ENDPOINT: formspreeEndpoint,
+            SUPABASE_URL,
+            SUPABASE_ANON_KEY,
+            SUPABASE_BUCKET,
+            ADMIN_CODE,
+            USER_CODE,
+            DEFAULT_ADMIN_EMAIL
+        };
+    }
+})(typeof window !== "undefined" ? window : globalThis);
